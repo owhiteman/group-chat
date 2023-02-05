@@ -36,8 +36,10 @@ dependencies:
   firebase_storage: ^11.0.7
   flutter:
     sdk: flutter
+  flutter_chat_ui: ^1.6.6
   image_picker: ^0.8.6
   provider: ^6.0.4
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_lints: ^2.0.0

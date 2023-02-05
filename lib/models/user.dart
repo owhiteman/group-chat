@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class User {
   final String uid;
   final String name;
@@ -9,7 +11,7 @@ class User {
     required this.uid,
     required this.name,
     required this.email,
-    required this.displayPicUrl,
+    this.displayPicUrl,
     this.groupId,
   });
 
@@ -20,4 +22,14 @@ class User {
         'displayPicUrl': displayPicUrl,
         'groupId': groupId,
       };
+
+  factory User.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data()! as Map<String, dynamic>;
+    return User(
+        uid: data['uid'],
+        name: data['name'],
+        email: data['email'],
+        displayPicUrl: data['displayPicUrl'],
+        groupId: data['groupId']);
+  }
 }
