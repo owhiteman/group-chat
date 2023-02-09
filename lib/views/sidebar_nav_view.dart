@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:group_chat/firebase/auth_service.dart';
+import 'package:group_chat/firebase/firestore_methods.dart';
 import 'package:group_chat/models/user.dart';
+import 'package:group_chat/widgets/error_message.dart';
 import 'package:provider/provider.dart';
 
 class SidebarNavigationView extends StatefulWidget {
@@ -72,7 +74,16 @@ class _SidebarNavigationViewState extends State<SidebarNavigationView> {
                 leading: const Icon(Icons.directions_walk),
                 title: const Text('Leave Group'),
                 onTap: () async {
-                  //TODO Leave group function
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  var res = await FireStoreMethods().leaveGroup(widget.user);
+                  if (res != 'success') {
+                    scaffoldMessenger.showSnackBar(SnackBar(
+                      content: ErrorMessage(errorText: res),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                    ));
+                  }
                 },
               ),
             ],

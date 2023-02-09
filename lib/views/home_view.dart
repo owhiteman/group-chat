@@ -80,10 +80,13 @@ class HomeView extends StatelessWidget {
               inputText: 'Create',
               onPressed: () async {
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final nav = Navigator.of(context);
 
                 if (groupName.text.isNotEmpty) {
                   var res = await FireStoreMethods()
                       .createGroup(groupName.text.trim());
+
+                  nav.pop();
 
                   if (res != 'success') {
                     scaffoldMessenger.showSnackBar(SnackBar(
@@ -137,7 +140,6 @@ class HomeView extends StatelessWidget {
                   labelText: 'Group ID',
                 ),
                 textCapitalization: TextCapitalization.words,
-                maxLength: 20,
               ),
             ],
           ),
@@ -149,7 +151,33 @@ class HomeView extends StatelessWidget {
           children: [
             CustomButton(
               inputText: 'Join',
-              onPressed: () {},
+              onPressed: () async {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final nav = Navigator.of(context);
+
+                if (groupId.text.isNotEmpty) {
+                  var res =
+                      await FireStoreMethods().joinGroup(groupId.text.trim());
+
+                  nav.pop();
+
+                  if (res != 'success') {
+                    scaffoldMessenger.showSnackBar(SnackBar(
+                      content: ErrorMessage(errorText: res),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                    ));
+                  }
+                } else {
+                  scaffoldMessenger.showSnackBar(const SnackBar(
+                    content: ErrorMessage(errorText: 'Please enter a group ID'),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                  ));
+                }
+              },
               width: 110,
             ),
             const SizedBox(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:group_chat/views/sidebar_nav_view.dart';
@@ -15,7 +14,7 @@ class GroupChatView extends StatefulWidget {
 }
 
 class _GroupChatViewState extends State<GroupChatView> {
-  List<types.Message> _messages = [];
+  final List<types.Message> _messages = [];
   late final _user = types.User(
     id: widget.user!.uid,
   );
