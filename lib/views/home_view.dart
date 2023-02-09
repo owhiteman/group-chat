@@ -21,6 +21,12 @@ class HomeView extends StatelessWidget {
                 : Center(
                     child: Column(
                       children: [
+                        AppBar(
+                          title: const Text('Home'),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
                         Text(user.name),
                         CustomButton(
                             inputText: 'Join Group',
