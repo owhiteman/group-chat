@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:group_chat/models/group.dart';
 import 'package:group_chat/models/user.dart' as model;
 import 'package:uuid/uuid.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 class FireStoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -19,7 +20,6 @@ class FireStoreMethods {
   Future<String> createGroup(String name) async {
     String status = 'error';
     List<String> members = [];
-    List<String> messages = [];
     String groupId = const Uuid().v4();
     members.add(_firebaseAuth.currentUser!.uid);
 
@@ -27,8 +27,7 @@ class FireStoreMethods {
         groupId: groupId,
         name: name,
         members: members,
-        groupAdminId: _firebaseAuth.currentUser!.uid,
-        messages: messages);
+        groupAdminId: _firebaseAuth.currentUser!.uid);
 
     try {
       await _firestore.collection('groups').doc(groupId).set(group.toJson());
@@ -79,5 +78,52 @@ class FireStoreMethods {
       status = e.toString();
     }
     return status;
+  }
+
+  void sendMessage(types.PartialText partialMessage, String groupId) async {
+    types.Message message;
+
+    message = types.TextMessage.fromPartial(
+      author: types.User(id: _firebaseAuth.currentUser!.uid),
+      id: const Uuid().v4(),
+      partialText: partialMessage,
+    );
+
+    final messageMap = message.toJson();
+    messageMap.removeWhere((key, value) => key == 'author' || key == 'id');
+    messageMap['authorId'] = _firebaseAuth.currentUser!.uid;
+    messageMap['createdAt'] = FieldValue.serverTimestamp();
+    messageMap['updatedAt'] = FieldValue.serverTimestamp();
+
+    await _firestore
+        .collection('groups')
+        .doc(groupId)
+        .collection('messages')
+        .add(messageMap);
+  }
+
+  Stream<List<types.Message>> messages(String groupId) {
+    return _firestore
+        .collection('groups')
+        .doc(groupId)
+        .collection('messages')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs.fold<List<types.Message>>(
+            [],
+            (previousValue, doc) {
+              final data = doc.data();
+              final author = types.User(id: data['authorId'] as String);
+
+              data['author'] = author.toJson();
+              data['createdAt'] = data['createdAt']?.millisecondsSinceEpoch;
+              data['id'] = doc.id;
+              data['updatedAt'] = data['updatedAt']?.millisecondsSinceEpoch;
+
+              return [...previousValue, types.Message.fromJson(data)];
+            },
+          ),
+        );
   }
 }
