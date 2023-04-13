@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Group {
   final String groupId;
   final String name;
@@ -17,4 +19,13 @@ class Group {
         'members': members,
         'groupAdminId': groupAdminId,
       };
+
+  factory Group.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data()! as Map<String, dynamic>;
+    return Group(
+        groupId: data['groupId'],
+        name: data['name'],
+        members: data['members'],
+        groupAdminId: data['groupAdminId']);
+  }
 }

@@ -102,7 +102,8 @@ class FireStoreMethods {
         .add(messageMap);
   }
 
-  Stream<List<types.Message>> messages(String groupId) {
+  Stream<List<types.Message>> messages(
+      String groupId, List<types.User> groupUsers) {
     return _firestore
         .collection('groups')
         .doc(groupId)
@@ -114,7 +115,10 @@ class FireStoreMethods {
             [],
             (previousValue, doc) {
               final data = doc.data();
-              final author = types.User(id: data['authorId'] as String);
+              final author = groupUsers.firstWhere(
+                (u) => u.id == data['authorId'],
+                orElse: () => types.User(id: data['authorId'] as String),
+              );
 
               data['author'] = author.toJson();
               data['createdAt'] = data['createdAt']?.millisecondsSinceEpoch;
@@ -125,5 +129,52 @@ class FireStoreMethods {
             },
           ),
         );
+  }
+
+  Stream<List<String>> groupUserIds(String groupId) {
+    return _firestore
+        .collection('groups')
+        .doc(groupId)
+        .snapshots()
+        .map((event) {
+      final data = event.data();
+      final groupIds = data!['members'] ?? [];
+      return List<String>.from(groupIds);
+    });
+  }
+
+  Stream<List<types.User>> groupAuthorDetails(List<String> groupIds) {
+    return _firestore
+        .collection('users')
+        .where('uid', whereIn: groupIds)
+        .snapshots()
+        .map(
+          (event) => event.docs.fold<List<types.User>>(
+            [],
+            (previousValue, element) {
+              final data = element.data();
+              final user = types.User(
+                id: data['uid'] as String,
+                firstName: data['name'] as String,
+                imageUrl: data['displayPicUrl'] as String,
+              );
+              return [...previousValue, user];
+            },
+          ),
+        );
+  }
+
+  Future<model.User> getUserDetails(String uid) async {
+    var result = await _firestore.collection('users').doc(uid).get();
+    var userData = result.data()!;
+
+    var userDetails =
+        model.User(uid: uid, name: userData['name'], email: userData['email']);
+
+    if (userData['displayPicUrl'] != null) {
+      userDetails.displayPicUrl = userData['displayPicUrl'];
+    }
+
+    return userDetails;
   }
 }
